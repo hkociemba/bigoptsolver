@@ -245,7 +245,7 @@ class CubieCube:
             flip //= 2
         self.eo[Ed.BR] = ((2 - flipparity % 2) % 2)
 
-    def get_dcorners(self):
+    def get_udcorners(self):
         """Get the location of the D-corners DFR,DLF, DBL and DRB ignoring their permutation.
             0 <= dcorners < 70. By exchanging U and D corners the index range is reduced to  0 <= dcorners < 35 """
         a = x = 0

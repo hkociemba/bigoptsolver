@@ -128,6 +128,6 @@ for i in range(N_UDCORNERS):
     for j in enums.Color:  # six faces U, R, F, D, L, B
         for k in range(3):  # three moves for each face, for example U, U2, U3 = U'
             a.corner_multiply(cb.basicMoveCube[j])
-            udcorners_move[N_MOVE * i + 3 * j + k] = a.get_dcorners()
+            udcorners_move[N_MOVE * i + 3 * j + k] = a.get_udcorners()
         a.corner_multiply(cb.basicMoveCube[j])  # 4. move restores face
 ########################################################################################################################

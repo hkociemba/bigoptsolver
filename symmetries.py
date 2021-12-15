@@ -127,7 +127,7 @@ for t in range(N_UDCORNERS):
         ss = cb.CubieCube(symCube[s].cp, symCube[s].co, symCube[s].ep, symCube[s].eo)  # copy cube
         ss.corner_multiply(cc)  # s*t
         ss.corner_multiply(symCube[inv_idx[s]])  # s*t*s^-1
-        udcorners_conj[N_SYM_D4h * t + s] = ss.get_dcorners()
+        udcorners_conj[N_SYM_D4h * t + s] = ss.get_udcorners()
 # ######################################################################################################################
 
 # ############## Generate the tables to handle the symmetry reduced flip-slice coordinate ##############################

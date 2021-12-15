@@ -69,9 +69,9 @@ class CoordCube:
             self.FB_slice_sorted = SOLVED  # Position of UR, DR, DL, UL edges (<11880)
             self.FB_corners = SOLVED  # location of the four F or four B corners
 
-            self.UD_phasex24_depth = 0
-            self.RL_phasex24_depth = 0
-            self.FB_phasex24_depth = 0
+            self.UD_phasex24x35_depth = 0
+            self.RL_phasex24x35_depth = 0
+            self.FB_phasex24x35_depth = 0
 
             self.corner_depth = 0
         else:
@@ -81,7 +81,7 @@ class CoordCube:
             self.UD_twist = cc.get_twist()
             self.UD_flip = cc.get_flip()
             self.UD_slice_sorted = cc.get_slice_sorted()
-            self.UD_corners = cc.get_dcorners()
+            self.UD_corners = cc.get_udcorners()
 
             syc = sy.symCube[16]  # 120° rotation along URF-DBL axis
             ss = cb.CubieCube(syc.cp, syc.co, syc.ep, syc.eo)  # create copy of symCube[16]
@@ -90,7 +90,7 @@ class CoordCube:
             self.RL_twist = ss.get_twist()
             self.RL_flip = ss.get_flip()
             self.RL_slice_sorted = ss.get_slice_sorted()
-            self.RL_corners = cc.get_dcorners()
+            self.RL_corners = ss.get_udcorners()
 
             syc = sy.symCube[32]  # -120° rotation along URF-DBL axis
             ss = cb.CubieCube(syc.cp, syc.co, syc.ep, syc.eo)  # create copy of symCube[32]
@@ -99,24 +99,7 @@ class CoordCube:
             self.FB_twist = ss.get_twist()
             self.FB_flip = ss.get_flip()
             self.FB_slice_sorted = ss.get_slice_sorted()
-            self.FB_corners = cc.get_dcorners()
-
-            # symmetry reduced flipslicesorted coordinates, coord = sym^-1*rep*sym
-            self.UD_flipslicesorted_clsidx = sy.flipslicesorted_classidx[N_FLIP * self.UD_slice_sorted + self.UD_flip]
-            self.UD_flipslicesorted_sym = sy.flipslicesorted_sym[N_FLIP * self.UD_slice_sorted + self.UD_flip]
-            self.UD_flipslicesorted_rep = sy.flipslicesorted_rep[self.UD_flipslicesorted_clsidx]
-
-            self.RL_flipslicesorted_clsidx = sy.flipslicesorted_classidx[N_FLIP * self.RL_slice_sorted + self.RL_flip]
-            self.RL_flipslicesorted_sym = sy.flipslicesorted_sym[N_FLIP * self.RL_slice_sorted + self.RL_flip]
-            self.RL_flipslicesorted_rep = sy.flipslicesorted_rep[self.RL_flipslicesorted_clsidx]
-
-            self.FB_flipslicesorted_clsidx = sy.flipslicesorted_classidx[N_FLIP * self.FB_slice_sorted + self.FB_flip]
-            self.FB_flipslicesorted_sym = sy.flipslicesorted_sym[N_FLIP * self.FB_slice_sorted + self.FB_flip]
-            self.FB_flipslicesorted_rep = sy.flipslicesorted_rep[self.FB_flipslicesorted_clsidx]
-
-            self.UD_phasex24_depth = self.get_phasex24_depth(0)  # since we store the depth mod 3, retrieving the
-            self.RL_phasex24_depth = self.get_phasex24_depth(1)  # initial absolute depth is a bit involved
-            self.FB_phasex24_depth = self.get_phasex24_depth(2)
+            self.FB_corners = ss.get_udcorners()
 
             self.UD_phasex24x35_depth = self.get_phasex24x35_depth(0)  # since we store the depth mod 3, retrieving the
             self.RL_phasex24x35_depth = self.get_phasex24x35_depth(1)  # initial absolute depth is a bit involved
@@ -127,23 +110,17 @@ class CoordCube:
     def __str__(self):
         s = '(UD_twist: ' + str(self.UD_twist) + ', UD_flip: ' + str(self.UD_flip) + ', UD_slice_sorted: ' + str(
             self.UD_slice_sorted) + ')'
-        s = s + '\n' + 'UD classidx, sym, rep ' + str(self.UD_flipslicesorted_clsidx) + ' ' + \
-            str(self.UD_flipslicesorted_sym) + ' ' + str(self.UD_flipslicesorted_rep)
 
         s = s + '\n' + '(RL_twist: ' + str(self.RL_twist) + ', RL_flip: ' + str(
             self.RL_flip) + ', RL_slice_sorted: ' + str(self.RL_slice_sorted) + ')'
-        s = s + '\n' + 'RL classidx, sym, rep ' + str(self.RL_flipslicesorted_clsidx) + ' ' + \
-            str(self.RL_flipslicesorted_sym) + ' ' + str(self.RL_flipslicesorted_rep)
 
         s = s + '\n' + '(FB_twist: ' + str(self.FB_twist) + ', FB_flip: ' + str(
             self.FB_flip) + ', FB_slice_sorted: ' + str(self.FB_slice_sorted) + ')'
-        s = s + '\n' + ' FB_classidx, sym, rep ' + str(self.FB_flipslicesorted_clsidx) + ' ' + \
-            str(self.FB_flipslicesorted_sym) + ' ' + str(self.FB_flipslicesorted_rep)
 
         s = s + '\n' + 'Corner_perm: ' + str(self.corners) + ', UD_corners: ' + str(
             self.UD_corners) + ', RL_corners: ' + str(self.RL_corners) + ', FB_corners: ' + str(self.FB_corners)
 
-        s = s + '\n' + str(self.UD_phasex24x35_depth) + ' ' + str(self.RL_phasex24x35_depth) + ' ' + str(
+        s = s + '\n' + 'Initial depth: ' + str(self.UD_phasex24x35_depth) + ' ' + str(self.RL_phasex24x35_depth) + ' ' + str(
             self.FB_phasex24x35_depth)
         return s + '\n'
 
@@ -158,20 +135,12 @@ class CoordCube:
         self.UD_flip = mv.flip_move[N_MOVE * self.UD_flip + m]
         self.UD_slice_sorted = mv.slice_sorted_move[N_MOVE * self.UD_slice_sorted + m]
 
-        self.UD_flipslicesorted_clsidx = sy.flipslicesorted_classidx[N_FLIP * self.UD_slice_sorted + self.UD_flip]
-        self.UD_flipslicesorted_sym = sy.flipslicesorted_sym[N_FLIP * self.UD_slice_sorted + self.UD_flip]
-        self.UD_flipslicesorted_rep = sy.flipslicesorted_rep[self.UD_flipslicesorted_clsidx]
-
         self.UD_corners = mv.udcorners_move[N_MOVE * self.UD_corners + m]
 
         m = sy.conj_move[N_MOVE * 16 + m]  # move changes too viewed from 120° rotated position
         self.RL_twist = mv.twist_move[N_MOVE * self.RL_twist + m]
         self.RL_flip = mv.flip_move[N_MOVE * self.RL_flip + m]
         self.RL_slice_sorted = mv.slice_sorted_move[N_MOVE * self.RL_slice_sorted + m]
-
-        self.RL_flipslicesorted_clsidx = sy.flipslicesorted_classidx[N_FLIP * self.RL_slice_sorted + self.RL_flip]
-        self.RL_flipslicesorted_sym = sy.flipslicesorted_sym[N_FLIP * self.RL_slice_sorted + self.RL_flip]
-        self.RL_flipslicesorted_rep = sy.flipslicesorted_rep[self.RL_flipslicesorted_clsidx]
 
         self.RL_corners = mv.udcorners_move[N_MOVE * self.RL_corners + m]
 
@@ -180,112 +149,13 @@ class CoordCube:
         self.FB_flip = mv.flip_move[N_MOVE * self.FB_flip + m]
         self.FB_slice_sorted = mv.slice_sorted_move[N_MOVE * self.FB_slice_sorted + m]
 
-        self.FB_flipslicesorted_clsidx = sy.flipslicesorted_classidx[N_FLIP * self.FB_slice_sorted + self.FB_flip]
-        self.FB_flipslicesorted_sym = sy.flipslicesorted_sym[N_FLIP * self.FB_slice_sorted + self.FB_flip]
-        self.FB_flipslicesorted_rep = sy.flipslicesorted_rep[self.FB_flipslicesorted_clsidx]
-
         self.FB_corners = mv.udcorners_move[N_MOVE * self.FB_corners + m]
-
-        self.UD_phasex24_depth = self.get_phasex24_depth(0)
-        self.RL_phasex24_depth = self.get_phasex24_depth(1)
-        self.FB_phasex24_depth = self.get_phasex24_depth(2)
 
         self.UD_phasex24x35_depth = self.get_phasex24x35_depth(0)
         self.RL_phasex24x35_depth = self.get_phasex24x35_depth(1)
         self.FB_phasex24x35_depth = self.get_phasex24x35_depth(2)
 
         self.corner_depth = pr.corner_depth[self.corners]  # for corners we store just the depth
-
-    # def get_phase1_depth(self, position):
-    #     """
-    #     Compute the distance to the cube subgroup H where flip=slice=twist=0
-    #     :param position: The current cube state
-    #     :return: The distance to H
-    #     """
-    #     if position == 0:
-    #         slice_ = self.UD_slice_sorted // N_PERM_4
-    #         flip = self.UD_flip
-    #         twist = self.UD_twist
-    #     elif position == 1:
-    #         slice_ = self.RL_slice_sorted // N_PERM_4
-    #         flip = self.RL_flip
-    #         twist = self.RL_twist
-    #     else:
-    #         slice_ = self.FB_slice_sorted // N_PERM_4
-    #         flip = self.FB_flip
-    #         twist = self.FB_twist
-    #
-    #     flipslice = N_FLIP * slice_ + flip
-    #     classidx = sy.flipslice_classidx[flipslice]
-    #     sym = sy.flipslice_sym[flipslice]
-    #     depth_mod3 = pr.get_flipslice_twist_depth3(N_TWIST * classidx + sy.twist_conj[(twist << 4) + sym])
-    #
-    #     depth = 0
-    #     while flip != SOLVED or slice_ != SOLVED or twist != SOLVED:
-    #         if depth_mod3 == 0:
-    #             depth_mod3 = 3
-    #         for m in Move:  # we can use the same m in all 3 rotational positions
-    #             twist1 = mv.twist_move[N_MOVE * twist + m]
-    #             flip1 = mv.flip_move[N_MOVE * flip + m]
-    #             slice1 = mv.slice_sorted_move[N_MOVE * slice_ * N_PERM_4 + m] // N_PERM_4  # we may set perm=0 here
-    #             flipslice1 = N_FLIP * slice1 + flip1
-    #             classidx1 = sy.flipslice_classidx[flipslice1]
-    #             sym = sy.flipslice_sym[flipslice1]
-    #             if pr.get_flipslice_twist_depth3(
-    #                     N_TWIST * classidx1 + sy.twist_conj[(twist1 << 4) + sym]) == depth_mod3 - 1:
-    #                 depth += 1
-    #                 twist = twist1
-    #                 flip = flip1
-    #                 slice_ = slice1
-    #                 depth_mod3 -= 1
-    #                 break
-    #     return depth
-
-    def get_phasex24_depth(self, position):
-        """
-         Compute the distance to the cube subgroup  where flip=slicesorted=twist=0
-        :param position:
-        :return:
-        """
-        # find initial distance from given position
-        if position == 0:
-            slicesorted = self.UD_slice_sorted
-            flip = self.UD_flip
-            twist = self.UD_twist
-        elif position == 1:
-            slicesorted = self.RL_slice_sorted
-            flip = self.RL_flip
-            twist = self.RL_twist
-        else:
-            slicesorted = self.FB_slice_sorted
-            flip = self.FB_flip
-            twist = self.FB_twist
-
-        flipslicesorted = N_FLIP * slicesorted + flip
-        classidx = sy.flipslicesorted_classidx[flipslicesorted]
-        sym = sy.flipslicesorted_sym[flipslicesorted]
-        depth_mod3 = pr.get_flipslicesorted_twist_depth3(N_TWIST * classidx + sy.twist_conj[(twist << 4) + sym])
-
-        depth = 0
-        while flip != SOLVED or slicesorted != SOLVED or twist != SOLVED:
-            if depth_mod3 == 0:
-                depth_mod3 = 3
-            for m in Move:  # we can use the same m in all 3 rotational positions
-                twist1 = mv.twist_move[N_MOVE * twist + m]
-                flip1 = mv.flip_move[N_MOVE * flip + m]
-                slicesorted1 = mv.slice_sorted_move[N_MOVE * slicesorted + m]
-                flipslicesorted1 = N_FLIP * slicesorted1 + flip1
-                classidx1 = sy.flipslicesorted_classidx[flipslicesorted1]
-                sym = sy.flipslicesorted_sym[flipslicesorted1]
-                if pr.get_flipslicesorted_twist_depth3(
-                        N_TWIST * classidx1 + sy.twist_conj[(twist1 << 4) + sym]) == depth_mod3 - 1:
-                    depth += 1
-                    twist = twist1
-                    flip = flip1
-                    slicesorted = slicesorted1
-                    depth_mod3 -= 1
-                    break
-        return depth
 
     def get_phasex24x35_depth(self, position):
         """
@@ -312,9 +182,9 @@ class CoordCube:
         flipslicesorted = N_FLIP * slicesorted + flip
         classidx = sy.flipslicesorted_classidx[flipslicesorted]
         sym = sy.flipslicesorted_sym[flipslicesorted]
-        # depth_mod3 = pr.get_flipslicesorted_twist_depth3(N_TWIST * classidx + sy.twist_conj[(twist << 4) + sym])
         depth_mod3 = pr.get_fsstc_depth3(sy.udcorners_conj[(corners << 4) + sym],
                                          N_TWIST * classidx + sy.twist_conj[(twist << 4) + sym])
+                                                 
         depth = 0
         while flip != SOLVED or slicesorted != SOLVED or twist != SOLVED or corners != SOLVED:
             if depth_mod3 == 0:
@@ -327,8 +197,6 @@ class CoordCube:
                 flipslicesorted1 = N_FLIP * slicesorted1 + flip1
                 classidx1 = sy.flipslicesorted_classidx[flipslicesorted1]
                 sym = sy.flipslicesorted_sym[flipslicesorted1]
-                # if pr.get_flipslicesorted_twist_depth3(
-                #        N_TWIST * classidx1 + sy.twist_conj[(twist1 << 4) + sym]) == depth_mod3 - 1:
                 if pr.get_fsstc_depth3(sy.udcorners_conj[(corners1 << 4) + sym],
                                        N_TWIST * classidx1 + sy.twist_conj[(twist1 << 4) + sym]) == depth_mod3 - 1:
                     depth += 1
