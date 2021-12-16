@@ -77,7 +77,6 @@ def createbigprun_table():
         twist = 0
         udcorners = 0
         set_fsstc_depth3(udcorners, defs.N_TWIST * fs_classidx + twist, 0)
-        #set_flipslicesorted_twist_depth3(defs.N_TWIST * fs_classidx + twist, 0)
         done = 1
         depth = 0
         backsearch = False
@@ -106,10 +105,8 @@ def createbigprun_table():
                         ####################################################################################################
 
                         if backsearch:
-                            # match = (get_flipslicesorted_twist_depth3(idx) == 3)
                             match = (get_fsstc_depth3(udcorners, idx) == 3)
                         else:
-                            # match = (get_flipslicesorted_twist_depth3(idx) == depth3)
                             match = (get_fsstc_depth3(udcorners, idx) == depth3)
 
                         if match:
@@ -148,9 +145,7 @@ def createbigprun_table():
                                         ####################################################################################
 
                                 else:  # backwards search
-                                    # if get_flipslicesorted_twist_depth3(idx1) == depth3:
                                     if get_fsstc_depth3(udcorners1, idx1) == depth3:
-                                        # set_flipslicesorted_twist_depth3(idx, (depth + 1) % 3)
                                         set_fsstc_depth3(udcorners, idx, (depth + 1) % 3)
                                         done += 1
                                         break

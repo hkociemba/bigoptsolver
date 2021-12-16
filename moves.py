@@ -119,9 +119,6 @@ fh.close()
 ########################################################################################################################
 
 # ######################################### Move table for the UD corners. ##################################
-
-#fname = "move_dcorners"
-#print("creating " + fname + " table...")
 udcorners_move = ar.array('B', [0 for i in range(N_UDCORNERS * N_MOVE)])
 for i in range(N_UDCORNERS):
     a.set_dcorners(i)
