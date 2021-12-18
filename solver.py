@@ -11,12 +11,12 @@ import time
 
 solfound = False  # global variable, True if solution is found
 nodecount = 0  # number of nodes generated on certain level
-cputime = 0  # optional for profiling purpose
+
 
 def search(UD_flip, RL_flip, FB_flip, UD_twist, RL_twist, FB_twist, UD_slice_sorted, \
            RL_slice_sorted, FB_slice_sorted, UDcorn, RLcorn, FBcorn, corners, UD_dist, RL_dist, FB_dist, togo):
     global solfound, nodecount, cputime
-       
+
     if solfound:
         return
     if togo == 0:
@@ -131,26 +131,22 @@ def solve(cubestring):
         s_time = time.monotonic()
         totnodes += nodecount
         nodecount = 0
-        # cputime = 0
         search(coc.UD_flip, coc.RL_flip, coc.FB_flip, coc.UD_twist, coc.RL_twist, coc.FB_twist,
                coc.UD_slice_sorted, coc.RL_slice_sorted, coc.FB_slice_sorted, coc.UD_corners, coc.RL_corners,
                coc.FB_corners, coc.corners,
                coc.UD_phasex24x35_depth, coc.RL_phasex24x35_depth, coc.FB_phasex24x35_depth, togo)
-        print('depth ' + str(togo) + ' done in ' + str(round(time.monotonic() - s_time, 2)) + ' s')
-        if togo > 12:
-            print('nodes generated in depth ' + str(togo) + ': ' + str(nodecount) + ', about ' + str(
-                round(nodecount / (time.monotonic() - s_time + 0.0001))) + ' nodes/s')
-            # print(cputime)
+        if togo > 14:
+            t = time.monotonic() - s_time + 0.0001
+            print('depth ' + str(togo) + ' done in ' + str(round(t, 2)) + ' s, ' + str(
+                nodecount) + ' nodes generated, ' + 'about ' + str(round(nodecount / t)) + ' nodes/s')
         togo += 1
-    print('total time: ' + str(round(time.monotonic() - start_time, 2)) + ' s')
-    print('total number of nodes generated: ' + str(totnodes + nodecount))
-    print('average node generation: ' + str(
-        round((totnodes + nodecount) / (time.monotonic() - start_time + 0.0001), 2)) + ' nodes/s')
+    print('total time: ' + str(
+        round(time.monotonic() - start_time, 2)) + ' s, ' + 'nodes generated: ' + str(
+        totnodes + nodecount))
+
     s = ''
     for m in sofar:
         s += m.name + ' '
     return s + '(' + str(len(s) // 3) + 'f*)'
-
-
 
 ########################################################################################################################

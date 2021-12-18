@@ -15,7 +15,7 @@ def test(n):
         cc.randomize()
         fc = cc.to_facelet_cube()
         s = fc.to_string()
-        print(s)
+        print(str(i+1) + '. ' + s)
         s = sv.solve(s)
         print(s)
         print()

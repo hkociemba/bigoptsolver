@@ -159,7 +159,7 @@ class CoordCube:
 
     def get_phasex24x35_depth(self, position):
         """
-         Compute the distance to the cube subgroup  where flip=slicesorted=twist=0
+         Compute the distance to the cube subgroup  where flip=slicesorted=twist==udcorners=0
         :param position:
         :return:
         """
