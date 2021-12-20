@@ -48,7 +48,7 @@ def createbigprun_table():
         # print('This may take 8 hours or even longer, depending on the hardware and the Python version.')
         # print('Using PyPy instead of CPython gives a table creation speedup by a factor of about 20.')
         for i in range(defs.N_UDCORNERS):
-            print(i)
+            print('Reserve 795 MB memory block ' + str(i))
             fsstc_depth3[i] = ar.array('L', [0xffffffff] * (total // 16 + 1))
 
         # #################### create table with the symmetries of the flipslicesorted classes #########################
