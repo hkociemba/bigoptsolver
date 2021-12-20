@@ -4,7 +4,7 @@ from enums import Move
 import moves as mv
 import pruning as pr
 import symmetries as sy
-from defs import N_PERM_4, N_FLIP, N_TWIST, N_MOVE, BIG_TABLE
+from defs import N_FLIP, N_TWIST, N_MOVE
 
 SOLVED = 0  # 0 is index of the solved state
 
@@ -25,27 +25,30 @@ class CoordCube:
     in a position of the cube which is rotated by 240° along the URF-DLB axis  (the rotation that moves the FB-slice
     to the UD-slice)
 
-    0 <= UD_slice_sorted//4! = UD_slice < Binomial(12,4) just describes the position of the 4 UD-slice edges
-    0 <= RL_slice_sorted//4! = RL_slice < Binomial(12,4) just describes the position of the 4 RL-slice edges
-    0 <= FB_slice_sorted//4! = FB_slice < Binomial(12,4)  just describes the position of the 4 FB-slice edges
+    0<= UD_corners < Binomial(8,4)/2 describes the position of the corners. UD_corners=0, if the 4 corners of the
+    U-face are all in the U-face or all in the D-face.
+    0<= RL_corners < Binomial(8,4)/2 describes the position of the corners. RL_corners=0, if the 4 corners of the
+    R-face are all in the R-face or all in the L-face.
+    0<= FB_corners < Binomial(8,4)/2 describes the position of the corners. FB_corners=0, if the 4 corners of the
+    F-face are all in the F-face or all in the B-face.
 
-    The flip and the slice coordinate are combined to a flipslice coordinate in the range 0...1.013.760.
-    0 <= UD_flipslice = 2^11*UD_slice + UD_flip < 2^11*Binomial(12,4) = 1.013.760 then is symmetry-reduced by the 16
-     symmetries of D4h, which means in this case that you get 64430 equivalence classes (roughly 1.013.760//16) and
-     most equivalence classes contain 16 positions which are related by D4h symmetry: s^-1*pos1*s = pos2 for some
-     symmetry s from D4h and pos1 and pos2 in this class.
-     For an UD_flipslice coordinate X then:
-     flipslice_classidx[X] gives the index 0 <= clsidx < 64430 of the equivalence class that contains the
-     UD_flipslice coordinate X and
-     flipslice_sym[X] gives the symmetry 0 <= sym < 16 such that X = sym^-1*rep*sym, where rep is the representant
-     of the class. We choose the representant to be the element with the smallest UD_flipslice coordinate in the
-     equivalence class. The same applies for RL_flipslice and FB_flipslice.
+    The flip and the slice_sorted coordinate are combined to a flipslicesorted coordinate in the range 0...24330240-1
+    0 <= flipslicesorted = 2^11*UD_slice_sorted + flip < 2^11*12*11*10*9 = 24330240
+    then is symmetry-reduced by the 16 symmetries of D4h, which means in this case that you get 1523864 equivalence
+    classes (roughly 24330240//16) and most equivalence classes contain 16 positions which are related by D4h symmetry:
+    s^-1*pos1*s = pos2 for some symmetry s from D4h and pos1 and pos2 in this class.
+     For a flipslicesorted coordinate X then:
+     flipslicesorted_classidx[X] gives the index 0 <= clsidx < 1523864 of the equivalence class that contains the
+     flipslice coordinate X and:
+     flipslicesorted_sym[X] gives the symmetry 0 <= sym < 16 such that X = sym^-1*rep*sym, where rep is the representant
+     of the class given by clsidx.
+     We choose the representant to be the element with the smallest flipslicesorted coordinate in the equivalence class.
 
-     The pruning table then has 64430*3^7 entries and holds the information about the *shortest* distance of any position
-     to some  position where flip = twist = slice = 0. The solved cube is one of these positions so the distance to a solved
-     cube is at least the table distance. The pruning table can be used for all three orientations related
-     by a 12O° rotation of the cube simultaneously. Only 2 bits are used per entry since the distance is only stored
-     modulo 3 which still keeps all information.
+     The pruning table then has 1523864*3^7*35 entries and holds the information about the *shortest* distance of any
+     given position to some  position where flip = twist = slice_sorted = corners = 0. The solved cube is one of these
+     positions so the distance to a solved cube is at least the table distance. The pruning table can be used for all
+     three orientations related by a 12O° rotation of the cube simultaneously. Only 2 bits are used per entry since the
+     distance is only stored modulo 3 which still keeps all information.
     """
 
     def __init__(self, cc: cb.CubieCube = None):  # init CoordCube from CubieCube
@@ -120,7 +123,8 @@ class CoordCube:
         s = s + '\n' + 'Corner_perm: ' + str(self.corners) + ', UD_corners: ' + str(
             self.UD_corners) + ', RL_corners: ' + str(self.RL_corners) + ', FB_corners: ' + str(self.FB_corners)
 
-        s = s + '\n' + 'Initial depth: ' + str(self.UD_phasex24x35_depth) + ' ' + str(self.RL_phasex24x35_depth) + ' ' + str(
+        s = s + '\n' + 'Initial depth: ' + str(self.UD_phasex24x35_depth) + ' ' + str(
+            self.RL_phasex24x35_depth) + ' ' + str(
             self.FB_phasex24x35_depth)
         return s + '\n'
 
@@ -184,7 +188,7 @@ class CoordCube:
         sym = sy.flipslicesorted_sym[flipslicesorted]
         depth_mod3 = pr.get_fsstc_depth3(sy.udcorners_conj[(corners << 4) + sym],
                                          N_TWIST * classidx + sy.twist_conj[(twist << 4) + sym])
-                                                 
+
         depth = 0
         while flip != SOLVED or slicesorted != SOLVED or twist != SOLVED or corners != SOLVED:
             if depth_mod3 == 0:

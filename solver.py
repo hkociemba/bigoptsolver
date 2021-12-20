@@ -1,6 +1,6 @@
 # ################### The SolverThread class solves implements the two phase algorithm #################################
 import face
-from defs import N_MOVE, N_FLIP, N_TWIST, N_PERM_4, BIG_TABLE
+from defs import N_MOVE, N_FLIP, N_TWIST
 import cubie
 import symmetries as sy
 import coord
@@ -11,11 +11,12 @@ import time
 
 solfound = False  # global variable, True if solution is found
 nodecount = 0  # number of nodes generated on certain level
+sofar = []
 
 
-def search(UD_flip, RL_flip, FB_flip, UD_twist, RL_twist, FB_twist, UD_slice_sorted, \
+def search(UD_flip, RL_flip, FB_flip, UD_twist, RL_twist, FB_twist, UD_slice_sorted,
            RL_slice_sorted, FB_slice_sorted, UDcorn, RLcorn, FBcorn, corners, UD_dist, RL_dist, FB_dist, togo):
-    global solfound, nodecount, cputime
+    global solfound, nodecount
 
     if solfound:
         return
@@ -33,7 +34,12 @@ def search(UD_flip, RL_flip, FB_flip, UD_twist, RL_twist, FB_twist, UD_slice_sor
                     continue
 
             nodecount += 1
-            ################################################################################################################
+
+            corners1 = mv.corners_move[N_MOVE * corners + m]
+            co_dist1 = pr.corner_depth[corners1]
+            if co_dist1 >= togo:
+                continue
+            ############################################################################################################
             UD_twist1 = mv.twist_move[N_MOVE * UD_twist + m]
             UDcorn1 = mv.udcorners_move[N_MOVE * UDcorn + m]
             UD_flip1 = mv.flip_move[N_MOVE * UD_flip + m]
@@ -47,8 +53,9 @@ def search(UD_flip, RL_flip, FB_flip, UD_twist, RL_twist, FB_twist, UD_slice_sor
             UD_dist1_mod3 = pr.get_fsstc_depth3(sy.udcorners_conj[(UDcorn1 << 4) + fs_sym],
                                                 N_TWIST * fs_idx + sy.twist_conj[(UD_twist1 << 4) + fs_sym])
             UD_dist1 = pr.distance[3 * UD_dist + UD_dist1_mod3]
-
-            ################################################################################################################
+            if UD_dist1 >= togo:  # impossible to reach subgroup H in togo_phase1 - 1 moves
+                continue
+            ############################################################################################################
             mrl = sy.conj_move[N_MOVE * 16 + m]  # move viewed from 120° rotated position
 
             RL_twist1 = mv.twist_move[N_MOVE * RL_twist + mrl]
@@ -63,8 +70,9 @@ def search(UD_flip, RL_flip, FB_flip, UD_twist, RL_twist, FB_twist, UD_slice_sor
             RL_dist1_mod3 = pr.get_fsstc_depth3(sy.udcorners_conj[(RLcorn1 << 4) + fs_sym],
                                                 N_TWIST * fs_idx + sy.twist_conj[(RL_twist1 << 4) + fs_sym])
             RL_dist1 = pr.distance[3 * RL_dist + RL_dist1_mod3]
-
-            ################################################################################################################
+            if RL_dist1 >= togo:
+                continue
+            ############################################################################################################
             mfb = sy.conj_move[N_MOVE * 32 + m]  # move viewed from 240° rotated position
 
             FB_twist1 = mv.twist_move[N_MOVE * FB_twist + mfb]
@@ -79,22 +87,14 @@ def search(UD_flip, RL_flip, FB_flip, UD_twist, RL_twist, FB_twist, UD_slice_sor
             FB_dist1_mod3 = pr.get_fsstc_depth3(sy.udcorners_conj[(FBcorn1 << 4) + fs_sym],
                                                 N_TWIST * fs_idx + sy.twist_conj[(FB_twist1 << 4) + fs_sym])
             FB_dist1 = pr.distance[3 * FB_dist + FB_dist1_mod3]
-
-            ################################################################################################################
-
-            corners1 = mv.corners_move[N_MOVE * corners + m]
-            co_dist1 = pr.corner_depth[corners1]
-
-            dist_new = max(UD_dist1, RL_dist1, FB_dist1)
-            if UD_dist1 != 0 and UD_dist1 == RL_dist1 and RL_dist1 == FB_dist1:
-                dist_new += 1  # not obvious but true
-            dist_new = max(dist_new, co_dist1)
-
-            if dist_new >= togo:  # impossible to reach subgroup H in togo_phase1 - 1 moves
+            if FB_dist1 >= togo:
                 continue
-            # timex = time.perf_counter()
+            ############################################################################################################
+            if UD_dist1 != 0 and UD_dist1 == RL_dist1 and RL_dist1 == FB_dist1:
+                if UD_dist1 + 1 >= togo:  # due to definition of coordinates
+                    continue
+
             sofar.append(m)
-            # cputime += (time.perf_counter() - timex)
             search(UD_flip1, RL_flip1, FB_flip1, UD_twist1, RL_twist1, FB_twist1, UD_slice_sorted1,
                    RL_slice_sorted1, FB_slice_sorted1, UDcorn1, RLcorn1, FBcorn1, corners1, UD_dist1, RL_dist1,
                    FB_dist1, togo - 1)
@@ -108,7 +108,7 @@ def solve(cubestring):
      :param cubestring: The format of the string is given in the Facelet class defined in the file enums.py
     """
     global sofar  # the moves of the potential solution maneuver
-    global solfound, nodecount, cputime
+    global solfound, nodecount
     fc = face.FaceCube()
     s = fc.from_string(cubestring)  # initialize fc
     if s != cubie.CUBE_OK:

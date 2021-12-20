@@ -1,11 +1,7 @@
 import solver
 import face
 from cubie import CubieCube
-from coord import CoordCube
 from enums import Move as m
-import array as ar
-import defs
-
 
 
 cbc = CubieCube()

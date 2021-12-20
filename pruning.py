@@ -7,11 +7,10 @@ import moves as mv
 import symmetries as sy
 import cubie as cb
 from os import path
-import time
 import array as ar
 
-fsstc_depth3 = None
-corner_depth = None
+fsstc_depth3 = [ar.array('L')]*defs.N_UDCORNERS
+corner_depth = ar.array
 
 
 # ####################### functions to extract or set values in the pruning tables #####################################
@@ -36,8 +35,7 @@ def createbigprun_table():
     global fsstc_depth3
     total = defs.N_FLIPSLICESORTED_CLASS * defs.N_TWIST
     totalx35 = total * defs.N_UDCORNERS
-    fname = "phase1x24x35_prun" # Überprüfundg der Teile
-    fsstc_depth3 = [None] * defs.N_UDCORNERS
+    fname = "phase1x24x35_prun"  # Überprüfundg der Teile
 
     filesThere = True
     for i in range(defs.N_UDCORNERS):
@@ -96,13 +94,13 @@ def createbigprun_table():
 
                     twist = 0
                     while twist < defs.N_TWIST:
-                        # ########## if table entries are not populated, this is very fast: ################################
+                        # ########## if table entries are not populated, this is very fast: ############################
                         if not backsearch and idx % 16 == 0 and fsstc_depth3[udcorners][idx // 16] == 0xffffffff \
                                 and twist < defs.N_TWIST - 16:
                             twist += 16
                             idx += 16
                             continue
-                        ####################################################################################################
+                        ################################################################################################
 
                         if backsearch:
                             match = (get_fsstc_depth3(udcorners, idx) == 3)
@@ -128,21 +126,21 @@ def createbigprun_table():
                                     if get_fsstc_depth3(udcorners1, idx1) == 3:  # entry not yet filled
                                         set_fsstc_depth3(udcorners1, idx1, (depth + 1) % 3)
                                         done += 1
-                                        # ####symmetric position has eventually more than one representation ###############
+                                        # ####symmetric position has eventually more than one representation ###########
                                         sym = fs_sym[fs1_classidx]
                                         if sym != 1:
-                                            for j in range(1, 16):
+                                            for k in range(1, 16):
                                                 sym >>= 1
                                                 if sym % 2 == 1:
-                                                    twist2 = sy.twist_conj[(twist1 << 4) + j]
-                                                    udcorners2 = sy.udcorners_conj[(udcorners1 << 4) + j]
+                                                    twist2 = sy.twist_conj[(twist1 << 4) + k]
+                                                    udcorners2 = sy.udcorners_conj[(udcorners1 << 4) + k]
                                                     # fs2_classidx = fs1_classidx due to symmetry
                                                     idx2 = 2187 * fs1_classidx + twist2
                                                     if get_fsstc_depth3(udcorners2, idx2) == 3:
-                                                        #set_flipslicesorted_twist_depth3(idx2, (depth + 1) % 3)
+                                                        # set_flipslicesorted_twist_depth3(idx2, (depth + 1) % 3)
                                                         set_fsstc_depth3(udcorners2, idx2, (depth + 1) % 3)
                                                         done += 1
-                                        ####################################################################################
+                                        ################################################################################
 
                                 else:  # backwards search
                                     if get_fsstc_depth3(udcorners1, idx1) == depth3:
@@ -177,7 +175,7 @@ def create_cornerprun_table():
     global corner_depth
     if not path.isfile(fname):
         print("creating " + fname + " table...")
-        corner_depth = ar.array('b', [-1] * (defs.N_CORNERS))
+        corner_depth = ar.array('b', [-1] * defs.N_CORNERS)
         corners = 0  # value for solved corners
         corner_depth[corners] = 0
         done = 1

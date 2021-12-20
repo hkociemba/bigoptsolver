@@ -3,8 +3,8 @@
 from os import path
 import array as ar
 import cubie as cb
-from defs import N_TWIST, N_SYM, N_SYM_D4h, N_FLIP, N_SLICE, N_SLICE_SORTED, N_MOVE, \
-    N_FLIPSLICE_CLASS, N_FLIPSLICESORTED_CLASS, BIG_TABLE, N_UDCORNERS
+from defs import N_TWIST, N_SYM, N_SYM_D4h, N_FLIP, N_SLICE_SORTED, N_MOVE, N_FLIPSLICESORTED_CLASS, BIG_TABLE, \
+    N_UDCORNERS
 from enums import Corner as Co, Edge as Ed, Move as Mv, BS
 
 INVALID = 65535
